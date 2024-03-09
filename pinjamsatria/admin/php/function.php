@@ -121,3 +121,36 @@ if (isset($_POST['barangmasuk'])) {
         }
     }
 }
+
+if (isset($_POST['peminjam'])) {
+    $nama = $_POST['nama'];
+    $qty = $_POST['qty'];
+    $user = $_POST['user'];
+
+    $select = mysqli_query($conn, "SELECT id_barang, lokasi, jumlah_barang FROM alatbahan WHERE nama_barang = '$nama'");
+    $assoc = mysqli_fetch_assoc($select);
+    $idb = $assoc['id_barang'];
+    $lokasi = $assoc['lokasi'];
+    $jumlah = $assoc['jumlah_barang'];
+    $total = $jumlah + $qty;
+    if ($select) {
+        $insert = mysqli_query($conn, "INSERT INTO pinjam_alat (peminjam, tgl_pinjam, id_barang, nama_barang, jml_barang, tgl_kembali, kondisi) VALUES ('$user', '$date', '$idb', '$nama', '$qty', 'unprocessed')");
+        if ($insert) {
+            $insert2 = mysqli_query($conn, "INSERT INTO barang_keluar (id_barang, nama_barang, tgl_keluar, jml_keluar, lokasi, penerima, jml_sebelum, jml_sesudah) VALUES ('$idb', '$nama', '$date', '$qty', '$lokasi', '$user', '$jumlah', '$qty')");
+            if($insert2){
+                $update = mysqli_query($conn, "UPDATE alatbahan SET jumlah_barang = '$total'");
+                if($update){
+                    $select2 = mysqli_query($conn, "SELECT jml_keluar, total_barang WHERE id_barang = '$idb'");
+                    $array = mysqli_fetch_assoc($select2);
+                    $keluar = $array['jml_keluar'];
+                    $all = $array['total_barang'];
+                    $keluar1 = $qty +  $keluar;
+                    $all1 = $qty + $all;
+                    if($select2){
+                        $stok = mysqli_query($conn, "UPDATE STOK set jml_keluar = '$keluar1', ");
+                    }
+                }
+            }
+        }
+    }
+}
